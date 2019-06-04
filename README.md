@@ -10,8 +10,17 @@ The paper, presentation slides and the workshop poster can be accessed through f
 # Vehicle Speed Estimation Pipeline
 
 The figure below demonstrates the pipeline for estimating the vehicles speed in monocular traffic videos.
-![Pipeline](./figure/outline_new.png)
+![Pipeline](./figures/outline_new.png)
 
+# Results 
+The following 4 figures show the output of our system in all the 4 locations provided in the dataset.
+![Location1](./figures/loc1_7.PNG)
+
+![Location2](./figures/loc2_2.PNG)
+
+![Location3](./figures/loc3_2.PNG)
+
+![Location4](./figures/loc4_4.PNG)
 
 ## Cite
 Please cite our paper if you use this code in your own work:
