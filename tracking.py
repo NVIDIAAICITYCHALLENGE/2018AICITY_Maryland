@@ -1,115 +1,104 @@
-import numpy as np
-
 import pickle
 import os
 import scipy.io
-from detectron_results.load_bbox_sample import *
-#from sort_original import *
+import utilities
 from sort import *
 import argparse
-import cv2
-from detectron_results.preprocessing import *
-import pdb
 
 
+def main(args):
 
-def bb_intersection_over_union(boxA, boxB):
-    # determine the (x, y)-coordinates of the intersection rectangle
-    xA = max(boxA[0], boxB[0])
-    yA = max(boxA[1], boxB[1])
-    xB = min(boxA[2], boxB[2])
-    yB = min(boxA[3], boxB[3])
+    # Specify
+    detection_results_path = args.detection_results_path
 
-    # compute the area of intersection rectangle
-    interArea = (xB - xA) * (yB - yA)
-
-    # compute the area of both the prediction and ground-truth
-    # rectangles
-    boxAArea = (boxA[2] - boxA[0]) * (boxA[3] - boxA[1])
-    boxBArea = (boxB[2] - boxB[0]) * (boxB[3] - boxB[1])
-
-    # compute the intersection over union by taking the intersection
-    # area and dividing it by the sum of prediction + ground-truth
-    # areas - the interesection area
-    iou = interArea / float(boxAArea + boxBArea - interArea)
-
-    # return the intersection over union value
-    return iou
-
-
-if __name__ == '__main__':
-    args = parse_args()
-    data_root_dir_txt = '/scratch0/pirazh_f/Nvidia_Challenge/detectron_results/t1'
-
-
-    for fl in os.listdir(data_root_dir_txt):
+    for fl in os.listdir(detection_results_path):
    
-        filename = fl[:-4]
-        print(filename)
-        with open(os.path.join(data_root_dir_txt, fl), 'rb') as f_bbox:
+        video_name = fl[:-4]
+        print('Processing the detection file for video {} ...\n'.format(video_name))
+
+        # Load the stored pickle file for the detections
+        with open(os.path.join(detection_results_path, fl), 'rb') as f_bbox:
             metadata = pickle.load(f_bbox)
 
-        dic = {}
-        dic['bbox'] = []
-        dic['frame_num'] = []
-        dic['track_id'] = []
-        dic['box_velocities'] = []
-        dic['scores'] = []
+        # Construct the dictionary to contain tracking results
+        tracking_dict = {}
+        tracking_dict['bbox'], tracking_dict['frame_num'], tracking_dict['track_id'] = [], [], []
+        tracking_dict['box_velocities'], tracking_dict['scores'] = [], []
 
+        # reset the track ID of the tracker for new video
         KalmanBoxTracker.count = 0
+
+        # establish the multi object tracker
         mot_tracker = Sort()
 
+        # Processing video frames 1 by 1
         for j, md in enumerate(metadata):
-            final_boxes = []
-            req_labels = []
-            cls_bbox, label = convert_from_cls_format(md['cls_boxes'])
+            final_boxes, required_labels = [], []
+            cls_bbox, label = utilities.convert_from_cls_format(md['cls_boxes'])
 
             if cls_bbox is None:
                 continue
 
-            # keeping only car truck and bus
+            # Filtering out only the detections for cars, trucks and buses
             for bb, lab in zip(cls_bbox, label):
                 if lab in [3, 6, 8]:
                     final_boxes.append(bb)
-                    req_labels.append(lab)
 
             if len(final_boxes) == 0:
                 continue
 
+            # Convert the lists to numpy arrays
             final_boxes = np.asarray(final_boxes)
-            req_labels = np.asarray(req_labels)
-            detections = final_boxes[np.logical_and(final_boxes[:,4]>0.3,final_boxes[:,2]-final_boxes[:,0]<600)]
-            req_labels = req_labels[np.logical_and(final_boxes[:,4]>0.3,final_boxes[:,2]-final_boxes[:,0]<600)]
 
-            indices = non_max_suppression(detections, 0.9, detections[:, 4])
+            # Imposing detection confidence and bounding box size to discard faulty boxes
+            final_boxes = final_boxes[np.logical_and(final_boxes[:, 4] > args.min_det_score, final_boxes[:, 2] -
+                                                     final_boxes[:, 0] < args.max_det_size)]
+
+            # Apply NMS
+            indices = utilities.non_max_suppression(final_boxes, args.nms_threshold, final_boxes[:, 4])
             
             if len(indices) == 0:
                 continue
             
-            detections = [detections[i] for i in indices]
-            req_labels = [req_labels[i] for i in indices]
+            final_boxes = [final_boxes[i] for i in indices]
 
-            track_bbs_ids = mot_tracker.update(np.array(detections))
+            # Update the tracker by feeding the current frame detected boxes
+            track_bbs_ids = mot_tracker.update(np.array(final_boxes))
 
             if len(track_bbs_ids) == 0:
                 continue
 
-            dic['bbox'].append(track_bbs_ids[:, :4])
-            dic['box_velocities'].append(track_bbs_ids[:, -3:-1])
-            dic['scores'].extend(track_bbs_ids[:, 4])
-            dic['track_id'].extend(track_bbs_ids[:, 5])
-            dic['frame_num'].extend([j] * len(track_bbs_ids))
+            # Writing tracking results to the dictionary
+            tracking_dict['bbox'].append(track_bbs_ids[:, :4])
+            tracking_dict['box_velocities'].append(track_bbs_ids[:, -3:-1])
+            tracking_dict['scores'].extend(track_bbs_ids[:, 4])
+            tracking_dict['track_id'].extend(track_bbs_ids[:, 5])
+            tracking_dict['frame_num'].extend([j] * len(track_bbs_ids))
 
-        dic['bbox'] = np.vstack(dic['bbox'])
-        dic['box_velocities'] = np.vstack(dic['box_velocities'])
+        # Stacking the tracking results for convenience
+        tracking_dict['bbox'] = np.vstack(tracking_dict['bbox'])
+        tracking_dict['box_velocities'] = np.vstack(tracking_dict['box_velocities'])
 
-        with open('./results/track1/' + filename + '.pkl', 'wb') as f:
-            pickle.dump(dic, f)
+        # writing the tracking results to the pickle files and Matlab files for subsequent stages and visualization
+        with open('./results/track1/' + video_name + '.pkl', 'wb') as f:
+            pickle.dump(tracking_dict, f)
 
-        scipy.io.savemat('./results/{}.mat'.format(filename), {'track_id': dic['track_id'],
-                                                               'frame_num': dic['frame_num'],
-                                                               'bbox': dic['bbox'],
-                                                               'scores': dic['scores'],
-                                                               'velocity': dic['box_velocities']})
+        scipy.io.savemat('./results/{}.mat'.format(video_name), {'track_id': tracking_dict['track_id'],
+                                                               'frame_num': tracking_dict['frame_num'],
+                                                               'bbox': tracking_dict['bbox'],
+                                                               'scores': tracking_dict['scores'],
+                                                               'velocity': tracking_dict['box_velocities']})
 
 
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser('Running Tracker')
+    parser.add_argument('--detection_results_path', default='/scratch0/pirazh_f/Nvidia_Challenge/detectron_results/t1'
+                        , help='the path to detection results', required=True, type=str)
+    parser.add_argument('--min_det_score', default=0.3, help='Minimum detected objects confidence score', type=float)
+    parser.add_argument('--max_det_size', default=600, help='Maximum number of pixels a detected '
+                                                            'box can occupy', type=int)
+    parser.add_argument('--nms_threshold', default=0.9, help='Non-maximal Suppression score')
+
+    args = parser.parse_args()
+    main(args)
