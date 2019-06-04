@@ -12,6 +12,18 @@ The paper, presentation slides and the workshop poster can be accessed through f
 The figure below demonstrates the pipeline for estimating the vehicles speed in monocular traffic videos.
 ![Pipeline](./figures/outline_new.png)
 
+# Detection 
+
+For the purpose of detection, we used of the shelf mask R-CNN based detector, [Detectron](https://github.com/roytseng-tw/Detectron.pytorch) to obtain tight bounding boxes around vehicls. We ran Detectron on all the video frames and filtered out the detections for cars, trucks and buses.
+
+# Tracking 
+
+After obtaining the detection results we used the efficient online [SORT](https://github.com/abewley/sort) and deep version of it, [Deep SORT](https://github.com/nwojke/deep_sort). For appearance feature extraction in Deep SORT, we trained a model on the large scale [Comprehensive Cars (CompCars)](http://mmlab.ie.cuhk.edu.hk/datasets/comp_cars/index.html).
+
+# Velocity Estimation
+
+In this work we assume that roads are mainly planar regions and they can be well approximated using a plane. Therefore, using the vanishing points computed via lane markings, we estimated an affine transformation that can rectify the road image coordinates to real-world road coordinates except for constant multipliers that will be recovered through scale-recovery step. To learn more about this you can check the [paper](http://openaccess.thecvf.com/content_cvpr_2018_workshops/papers/w3/Kumar_A_Semi-Automatic_2D_CVPR_2018_paper.pdf). 
+
 # Results 
 The following 4 figures show the output of our system in all the 4 locations provided in the dataset.
 ![Location1](./figures/loc1_7.PNG)
