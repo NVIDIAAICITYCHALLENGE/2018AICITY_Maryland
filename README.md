@@ -7,6 +7,11 @@ This work was an oral and poster presentation in the CVPR 2018 Nvidia AI City wo
 The paper, presentation slides and the workshop poster can be accessed through following links:
 [Paper](http://openaccess.thecvf.com/content_cvpr_2018_workshops/papers/w3/Kumar_A_Semi-Automatic_2D_CVPR_2018_paper.pdf), [Slides](https://drive.google.com/file/d/10K0BM3H8_FC5kWnV6iRgZkVqXACGH3Sn/view?usp=sharing), [Poster](https://drive.google.com/file/d/1-a9s6H6V6PNlrJmabj8HWvuZ1-YeVm2p/view?usp=sharing)
 
+# Vehicle Speed Estimation Pipeline
+
+The figure below demonstrates the pipeline for estimating the vehicles speed in monocular traffic videos.
+![Pipeline](./figure/outline_new.png)
+
 
 ## Cite
 Please cite our paper if you use this code in your own work:
