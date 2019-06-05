@@ -27,7 +27,12 @@ This code as inputs take the path to the detection results `--detection_results_
 
 # Velocity Estimation
 
-In this work we assume that roads are mainly planar regions and they can be well approximated using a plane. Therefore, using the vanishing points computed via lane markings, we estimated an affine transformation that can rectify the road image coordinates to real-world road coordinates except for constant multipliers that will be recovered through scale-recovery step. To learn more about this you can check the [paper](http://openaccess.thecvf.com/content_cvpr_2018_workshops/papers/w3/Kumar_A_Semi-Automatic_2D_CVPR_2018_paper.pdf). 
+In this work we assume that roads are mainly planar regions and they can be well approximated using a plane. Therefore, using the vanishing points computed via lane markings, we estimated an affine transformation that can rectify the road image coordinates to real-world road coordinates except for constant multipliers that will be recovered through scale-recovery step. To learn more about this you can check the [paper](http://openaccess.thecvf.com/content_cvpr_2018_workshops/papers/w3/Kumar_A_Semi-Automatic_2D_CVPR_2018_paper.pdf). To estimate the speed of tracked vehicles in all videos in the dataset ou can run the following:
+
+```
+python velocity_measure.py --tracking_results_path PATH_TO_YOUR_TRACKING_RESULTS
+```
+The code takes the path to the generated tracking results in the previous part as input. 
 
 # Results 
 The following 4 figures show the output of our system in all the 4 locations provided in the dataset.
