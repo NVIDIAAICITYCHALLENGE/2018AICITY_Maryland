@@ -17,7 +17,7 @@ git clone https://github.com/NVIDIAAICITYCHALLENGE/2018AICITY_Maryland
 
 # Requirements
 
-The code is written in python 2.7. To install the dependencies run the following command:
+The code is written in python 2.7, to install the dependencies run the following command:
 
 ```
 pip install -r requirement.txt
