@@ -14,11 +14,16 @@ The figure below demonstrates the pipeline for estimating the vehicles speed in 
 
 # Detection 
 
-For the purpose of detection, we used of the shelf mask R-CNN based detector, [Detectron](https://github.com/roytseng-tw/Detectron.pytorch) to obtain tight bounding boxes around vehicls. We ran Detectron on all the video frames and filtered out the detections for cars, trucks and buses.
+For the purpose of detection, we used of the shelf mask R-CNN based detector, [Detectron](https://github.com/roytseng-tw/Detectron.pytorch) to obtain tight bounding boxes around vehicls. We ran Detectron on all the video frames and filtered out the detections for cars, trucks and buses. The detection results for each video can be stored in a dictionary with keys as frame numbers and then be written into a pickle file.
 
 # Tracking 
 
-After obtaining the detection results we used the efficient online [SORT](https://github.com/abewley/sort) and deep version of it, [Deep SORT](https://github.com/nwojke/deep_sort). For appearance feature extraction in Deep SORT, we trained a model on the large scale [Comprehensive Cars (CompCars)](http://mmlab.ie.cuhk.edu.hk/datasets/comp_cars/index.html).
+After obtaining the detection results we used the efficient online [SORT](https://github.com/abewley/sort) and deep version of it, [Deep SORT](https://github.com/nwojke/deep_sort). For appearance feature extraction in Deep SORT, we trained a model on the large scale [Comprehensive Cars (CompCars)](http://mmlab.ie.cuhk.edu.hk/datasets/comp_cars/index.html). To generate tracking results on the detections you can run the following code:
+
+```
+python tracking.py --detection_results_path PATH_TO_YOUR_DETECTION_RESULTS --min_det_score 0.5 --max_det_size 600 --nms_threshold 0.9
+```
+This code as inputs take the path to the detection results `--detection_results_path`, the minimum detection threshold for a detected box `--min_det_score`, the maximum of either width or height of a detected box in terms of pixles `--max_det_size` and finally the threshold for the non-maximal suppression `--nms_threshold`.
 
 # Velocity Estimation
 
