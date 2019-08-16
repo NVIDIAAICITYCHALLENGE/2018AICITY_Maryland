@@ -130,23 +130,23 @@ def compute_vel(box_vel, det, frame, s_x, s_y, y_min, y_max, H, V0):
                           (H[1][0] * c[0] + H[1][1] * c[1] + H[1][2]) * (H[2][0] * v[0] + H[2][1] * v[1])) /
                          ((H[2][0] * c[0] + H[2][1] * c[1] + H[2][2]) ** 2))
 
+            # Scale Recovery
+            s1, s2 = 1.1, 0.9
+            a, b = (s2 - s1) / (y_max - y_min), s1
+            s = a * c[1] + b
+
             # Velocity calculation
             instant_vel = np.sqrt(sum([(v_x_trans * s_x) ** 2, (v_y_trans * s_y) ** 2]))
             t_delta = frame[i] - f
 
-            # tranlating the speed to pixel/second
+            # tranlating the speed to miles/hour
             vi = instant_vel / t_delta * 30 * 9 / 4
 
             # Suppress noise
             if vi <= 3.0:
                 vi = 0.0
 
-            # Scale Recovery
-            s1, s2 = 1.1, 0.9
-            a, b = (s2 - s1) / (y_max - y_min), s1
-            s = a * c[1] + b
-
-            # Speed can be calculated using moving average which is more robust to noisy jitters in instant velocity
+                # Speed can be calculated using moving average which is more robust to noisy jitters in instant velocity
             # due to non-ideal detection and tracking
             v_estimate = (vel[i - 1] * i + vi * s) / (i + 1)
 
