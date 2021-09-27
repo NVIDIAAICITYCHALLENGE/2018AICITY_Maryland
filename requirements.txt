@@ -1,8 +1,0 @@
-matplotlib==3.1.0
-scikit_image==0.13.0
-scipy==1.0.0
-numpy==1.13.3
-numba==0.35.0+10.g143f70e90
-filterpy==1.4.5
-skimage==0.0
-scikit_learn==0.21.2
